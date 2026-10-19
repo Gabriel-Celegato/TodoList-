@@ -57,13 +57,29 @@ function isOverdue(task) {
   today.setHours(0, 0, 0, 0)
   return due < today
 }
-
 function sortTasks(tasks) {
   return [...tasks].sort((a, b) => {
-    const aDate = a.due_date ? new Date(`${normalizeDate(a.due_date)}T00:00:00`).getTime() : Infinity
-    const bDate = b.due_date ? new Date(`${normalizeDate(b.due_date)}T00:00:00`).getTime() : Infinity
-    if (aDate !== bDate) return aDate - bDate
-    return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+    // Tarefas pendentes sempre vêm antes das concluídas
+    if (Boolean(a.completed) !== Boolean(b.completed)) {
+      return a.completed ? 1 : -1
+    }
+
+    // Dentro do mesmo grupo, ordena pela data mais próxima
+    const aDate = a.due_date
+      ? new Date(`${normalizeDate(a.due_date)}T00:00:00`).getTime()
+      : Infinity
+
+    const bDate = b.due_date
+      ? new Date(`${normalizeDate(b.due_date)}T00:00:00`).getTime()
+      : Infinity
+
+    if (aDate !== bDate) {
+      return aDate - bDate
+    }
+
+    // Se as datas forem iguais, tarefa mais recente primeiro
+    return new Date(b.created_at || 0).getTime() -
+           new Date(a.created_at || 0).getTime()
   })
 }
 
